@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julius Baer Client 360 Data Integration Simulator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #185FA5 0%, #0C447C 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            font-size: 13px;
+            opacity: 0.95;
+            margin-bottom: 0.5rem;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background: #f0f0f0;
+        }
+        
+        button.active {
+            background: #185FA5;
+            color: white;
+            border-color: #185FA5;
+        }
+        
+        button.run-btn {
+            background: #185FA5;
+            color: white;
+            border-color: #185FA5;
+            margin-left: auto;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+        
+        .metric-value {
+            font-size: 22px;
+            font-weight: 600;
+            color: #185FA5;
+        }
+        
+        .metric-value.positive {
+            color: #3B6D11;
+        }
+        
+        .metric-value.negative {
+            color: #A32D2D;
+        }
+        
+        .section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+        }
+        
+        .parameter-group {
+            margin-bottom: 1.5rem;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            border-left: 4px solid #185FA5;
+        }
+        
+        .parameter-group-title {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #185FA5;
+        }
+        
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        
+        .parameter-input {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .parameter-input label {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+        
+        .value-display {
+            font-size: 12px;
+            font-weight: 600;
+            color: #185FA5;
+            margin-top: 4px;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            position: relative;
+            min-height: 300px;
+        }
+        
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+        }
+        
+        .chart-inner {
+            position: relative;
+            height: 220px;
+        }
+        
+        .info-box {
+            background: #E6F1FB;
+            border-left: 4px solid #185FA5;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #0C447C;
+            margin-bottom: 1rem;
+        }
+        
+        .roi-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .roi-table th, .roi-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 12px;
+        }
+        
+        .roi-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .roi-table tr:hover {
+            background: #fafafa;
+        }
+        
+        .roi-positive {
+            color: #3B6D11;
+            font-weight: 600;
+        }
+        
+        .roi-negative {
+            color: #A32D2D;
+        }
+        
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Client 360 Data Integration & Analytics Enablement Simulator</h1>
+            <p>Strategic planning tool for Deputy Head of Data & Solutions</p>
+            <p style="font-size: 12px; margin-top: 0.5rem;">Models the impact of data integration, quality improvements, platform adoption, and regulatory compliance on business outcomes and ROI</p>
+        </div>
+
+        <div class="info-box">
+            <strong>Current State (Julius Baer):</strong> Client data fragmented across legacy wealth management + digital banking systems. RMs take 2+ weeks for 360 view. Analytics platform underutilized (20% adoption). DORA compliance at risk due to data quality gaps.
+        </div>
+
+        <div class="controls">
+            <button id="scenarioCurrentBtn" class="active">Current state</button>
+            <button id="scenarioTargetBtn">Post-integration (target)</button>
+            <button id="scenarioCustomBtn">Custom scenario</button>
+            <button id="runSimBtn" class="run-btn">Update metrics</button>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Time to client 360 view</div>
+                <div class="metric-value" id="metricTimeToView">14 days</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Analytics platform adoption</div>
+                <div class="metric-value" id="metricAdoption">20%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Data quality score</div>
+                <div class="metric-value" id="metricQuality">62%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Annual ROI (3-year NPV)</div>
+                <div class="metric-value positive" id="metricROI">€0M</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Revenue uplift potential</div>
+                <div class="metric-value positive" id="metricRevenue">€0M</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Compliance risk score</div>
+                <div class="metric-value negative" id="metricCompliance">72/100</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Data integration parameters</div>
+            <div class="parameter-group">
+                <div class="parameter-group-title">📊 DATA SOURCE INTEGRATION</div>
+                <div class="parameter-grid">
+                    <div class="parameter-input">
+                        <label>Legacy wealth mgmt integration (%)</label>
+                        <input type="range" min="0" max="100" step="5" value="40" id="legacyIntegration">
+                        <span class="value-display"><span id="legacyVal">40</span>%</span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Digital banking integration (%)</label>
+                        <input type="range" min="0" max="100" step="5" value="35" id="digitalIntegration">
+                        <span class="value-display"><span id="digitalVal">35</span>%</span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Compliance/risk data linked (%)</label>
+                        <input type="range" min="0" max="100" step="5" value="25" id="complianceLink">
+                        <span class="value-display"><span id="complianceVal">25</span>%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="parameter-group">
+                <div class="parameter-group-title">🔧 DATA QUALITY & GOVERNANCE</div>
+                <div class="parameter-grid">
+                    <div class="parameter-input">
+                        <label>Data completeness (missing fields %)</label>
+                        <input type="range" min="5" max="40" step="1" value="35" id="completeness">
+                        <span class="value-display"><span id="completenessVal">35</span>% missing</span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Duplicate records (%)</label>
+                        <input type="range" min="1" max="20" step="1" value="12" id="duplicates">
+                        <span class="value-display"><span id="duplicatesVal">12</span>% duplicates</span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Data governance automation (%)</label>
+                        <input type="range" min="0" max="100" step="5" value="15" id="governance">
+                        <span class="value-display"><span id="governanceVal">15</span>% automated</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="parameter-group">
+                <div class="parameter-group-title">👥 BUSINESS ADOPTION & CHANGE</div>
+                <div class="parameter-grid">
+                    <div class="parameter-input">
+                        <label>RM analytics platform adoption (%)</label>
+                        <input type="range" min="5" max="95" step="5" value="20" id="adoption">
+                        <span class="value-display"><span id="adoptionVal">20</span>% using daily</span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Training completion rate (%)</label>
+                        <input type="range" min="20" max="100" step="5" value="40" id="training">
+                        <span class="value-display"><span id="trainingVal">40</span>% trained</span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Decision velocity improvement (%)</label>
+                        <input type="range" min="0" max="80" step="5" value="15" id="velocity">
+                        <span class="value-display"><span id="velocityVal">15</span>% faster</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="parameter-group">
+                <div class="parameter-group-title">💼 BUSINESS IMPACT</div>
+                <div class="parameter-grid">
+                    <div class="parameter-input">
+                        <label>Revenue per client (% improvement)</label>
+                        <input type="range" min="0" max="15" step="1" value="0" id="revenuePerClient">
+                        <span class="value-display"><span id="revenueVal">0</span>% uplift</span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Client retention improvement (%)</label>
+                        <input type="range" min="0" max="8" step="0.5" value="0" id="retention">
+                        <span class="value-display"><span id="retentionVal">0</span>% improvement</span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Cost savings (ops efficiency %)</label>
+                        <input type="range" min="0" max="20" step="1" value="0" id="costSavings">
+                        <span class="value-display"><span id="costVal">0</span>% savings</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-container">
+                <div class="chart-title">Time-to-insight improvement (days)</div>
+                <div class="chart-inner">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">3-year NPV ROI by component</div>
+                <div class="chart-inner">
+                    <canvas id="roiChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Business case & financial impact</div>
+            <table class="roi-table">
+                <thead>
+                    <tr>
+                        <th>Impact Category</th>
+                        <th>Current State</th>
+                        <th>Post-Integration</th>
+                        <th>3-Year Value</th>
+                    </tr>
+                </thead>
+                <tbody id="roiTableBody">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Data integration roadmap & dependencies</div>
+            <div id="roadmapContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">DORA & regulatory compliance status</div>
+            <div id="complianceContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Sensitivity analysis (what breaks the model)</div>
+            <div class="info-box">Shows 3-year NPV impact if single assumptions change by ±20%
+            </div>
+            <table class="roi-table">
+                <thead>
+                    <tr>
+                        <th>Assumption</th>
+                        <th>Downside (-20%)</th>
+                        <th>Base case</th>
+                        <th>Upside (+20%)</th>
+                        <th>Volatility</th>
+                    </tr>
+                </thead>
+                <tbody id="sensitivityTableBody">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const currentState = {
+            legacyIntegration: 40,
+            digitalIntegration: 35,
+            complianceLink: 25,
+            completeness: 35,
+            duplicates: 12,
+            governance: 15,
+            adoption: 20,
+            training: 40,
+            velocity: 15,
+            revenuePerClient: 0,
+            retention: 0,
+            costSavings: 0
+        };
+
+        const targetState = {
+            legacyIntegration: 95,
+            digitalIntegration: 95,
+            complianceLink: 90,
+            completeness: 8,
+            duplicates: 1,
+            governance: 85,
+            adoption: 75,
+            training: 88,
+            velocity: 70,
+            revenuePerClient: 12,
+            retention: 4,
+            costSavings: 18
+        };
+
+        let activeScenario = 'current';
+        let currentParams = JSON.parse(JSON.stringify(currentState));
+        let timelineChart = null;
+        let roiChart = null;
+
+        function calculateMetrics(params) {
+            const integrationScore = (params.legacyIntegration + params.digitalIntegration + params.complianceLink) / 3;
+            const qualityScore = Math.max(20, 100 - (params.completeness * 1.5 + params.duplicates * 3));
+            
+            const baseTimeToView = 14;
+            const timeToView = Math.max(0.5, baseTimeToView * (1 - (integrationScore / 100) * 0.95));
+            
+            const adoptionRate = params.adoption;
+            
+            const complianceRiskScore = Math.max(30, 100 - (qualityScore * 0.7 + params.governance * 0.3));
+            
+            const revenueImpact = (params.adoption / 100) * (params.revenuePerClient + params.retention * 3) * 450; // 450M AUM base
+            const costImpact = (params.costSavings / 100) * 120; // 120M ops budget
+            const totalValue = (revenueImpact + costImpact) * 3; // 3-year NPV
+            
+            return {
+                timeToView,
+                adoptionRate,
+                qualityScore,
+                complianceRiskScore,
+                revenueImpact,
+                costImpact,
+                totalValue,
+                integrationScore
+            };
+        }
+
+        function updateMetrics(params) {
+            const metrics = calculateMetrics(params);
+            
+            document.getElementById('metricTimeToView').textContent = Math.round(metrics.timeToView * 10) / 10 + ' days';
+            document.getElementById('metricAdoption').textContent = Math.round(metrics.adoptionRate) + '%';
+            document.getElementById('metricQuality').textContent = Math.round(metrics.qualityScore) + '%';
+            document.getElementById('metricROI').textContent = '€' + Math.round(metrics.totalValue / 1000) + 'M';
+            document.getElementById('metricRevenue').textContent = '€' + Math.round(metrics.revenueImpact / 1000) + 'M';
+            document.getElementById('metricCompliance').textContent = Math.round(metrics.complianceRiskScore) + '/100';
+            
+            renderCharts(params, metrics);
+            renderROITable(params, metrics);
+            renderRoadmap(params);
+            renderCompliance(metrics);
+            renderSensitivityAnalysis(params, metrics);
+        }
+
+        function renderCharts(params, metrics) {
+            const stages = [
+                'Legacy WM\nintegration',
+                'Digital banking\nintegration',
+                'Data quality\nimprovement',
+                'Analytics\nadoption',
+                'Compliance\nready'
+            ];
+            
+            const daysPerStage = [
+                180 * (1 - params.legacyIntegration / 100),
+                150 * (1 - params.digitalIntegration / 100),
+                120 * (1 - (100 - params.completeness) / 100),
+                90 * (1 - params.adoption / 100),
+                60 * (1 - params.governance / 100)
+            ];
+
+            if (timelineChart) timelineChart.destroy();
+            timelineChart = new Chart(document.getElementById('timelineChart'), {
+                type: 'bar',
+                data: {
+                    labels: stages,
+                    datasets: [{
+                        label: 'Days remaining',
+                        data: daysPerStage.map(d => Math.max(0, Math.round(d))),
+                        backgroundColor: '#E24B4A'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true } }
+                }
+            });
+
+            const roiComponents = [
+                Math.round(metrics.revenueImpact),
+                Math.round(metrics.costImpact),
+                Math.round(metrics.revenueImpact * 0.3) // Avoided compliance penalties
+            ];
+
+            if (roiChart) roiChart.destroy();
+            roiChart = new Chart(document.getElementById('roiChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Revenue uplift', 'Cost savings', 'Compliance value'],
+                    datasets: [{
+                        data: roiComponents,
+                        backgroundColor: ['#378ADD', '#639922', '#BA7517']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true, position: 'bottom' } }
+                }
+            });
+        }
+
+        function renderROITable(params, metrics) {
+            const tbody = document.getElementById('roiTableBody');
+            tbody.innerHTML = '';
+            
+            const rows = [
+                {
+                    category: 'Time to client 360',
+                    current: '14 days',
+                    target: Math.round(metrics.timeToView * 10) / 10 + ' days',
+                    value: '€' + Math.round((14 - metrics.timeToView) * 50) + 'M'
+                },
+                {
+                    category: 'RM productivity (via analytics)',
+                    current: '20% using daily',
+                    target: Math.round(params.adoption) + '% using daily',
+                    value: '€' + Math.round(metrics.revenueImpact) + 'M'
+                },
+                {
+                    category: 'Ops efficiency (automation)',
+                    current: '15% automated',
+                    target: Math.round(params.governance) + '% automated',
+                    value: '€' + Math.round(metrics.costImpact) + 'M'
+                },
+                {
+                    category: 'Data quality (DORA compliance)',
+                    current: '62% quality score',
+                    target: Math.round(metrics.qualityScore) + '% quality',
+                    value: '€' + Math.round(metrics.revenueImpact * 0.25) + 'M (risk avoided)'
+                },
+                {
+                    category: '3-Year NPV Total',
+                    current: '€120M (baseline)',
+                    target: '€' + Math.round(metrics.totalValue / 1000) + 'M',
+                    value: '€' + Math.round(metrics.totalValue / 1000 - 120) + 'M additional'
+                }
+            ];
+
+            rows.forEach(row => {
+                const tr = document.createElement('tr');
+                const isPositive = !row.value.includes('-');
+                tr.innerHTML = `
+                    <td><strong>${row.category}</strong></td>
+                    <td>${row.current}</td>
+                    <td>${row.target}</td>
+                    <td class="${isPositive ? 'roi-positive' : 'roi-negative'}">${row.value}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderRoadmap(params) {
+            const container = document.getElementById('roadmapContainer');
+            container.innerHTML = '';
+            
+            const phases = [
+                {
+                    name: 'Phase 1: Data Foundation (months 0-6)',
+                    items: [
+                        { name: 'Legacy WM API layer', progress: params.legacyIntegration, critical: true },
+                        { name: 'Data quality assessment', progress: Math.min(100, 100 - params.completeness * 2), critical: true },
+                        { name: 'Master data management setup', progress: params.governance * 0.5, critical: false }
+                    ]
+                },
+                {
+                    name: 'Phase 2: Platform Integration (months 6-12)',
+                    items: [
+                        { name: 'Digital banking connector', progress: params.digitalIntegration, critical: true },
+                        { name: 'Real-time sync layer', progress: params.digitalIntegration * 0.8, critical: true },
+                        { name: 'BI platform optimization', progress: params.adoption * 0.6, critical: false }
+                    ]
+                },
+                {
+                    name: 'Phase 3: Adoption & Governance (months 12-18)',
+                    items: [
+                        { name: 'RM training & enablement', progress: params.training, critical: true },
+                        { name: 'Analytics adoption', progress: params.adoption, critical: true },
+                        { name: 'Compliance automation', progress: params.governance, critical: true }
+                    ]
+                }
+            ];
+
+            phases.forEach(phase => {
+                const phaseDiv = document.createElement('div');
+                phaseDiv.style.padding = '12px';
+                phaseDiv.style.background = '#f9f9f9';
+                phaseDiv.style.borderRadius = '6px';
+                phaseDiv.style.borderLeft = '4px solid #378ADD';
+                phaseDiv.innerHTML = `<strong style="font-size: 12px; color: #378ADD;">${phase.name}</strong>`;
+                
+                phase.items.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.style.marginTop = '8px';
+                    itemDiv.style.fontSize = '12px';
+                    itemDiv.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span>${item.name} ${item.critical ? '⚠️ CRITICAL' : ''}</span>
+                            <span style="font-weight: 600;">${Math.round(item.progress)}%</span>
+                        </div>
+                        <div style="background: #e0e0e0; height: 6px; border-radius: 3px; overflow: hidden;">
+                            <div style="background: ${item.progress > 75 ? '#3B6D11' : item.progress > 50 ? '#BA7517' : '#E24B4A'}; height: 100%; width: ${item.progress}%;"></div>
+                        </div>
+                    `;
+                    phaseDiv.appendChild(itemDiv);
+                });
+                
+                container.appendChild(phaseDiv);
+            });
+        }
+
+        function renderCompliance(metrics) {
+            const container = document.getElementById('complianceContainer');
+            container.innerHTML = '';
+            
+            const complianceReqs = [
+                { req: 'DORA: Data quality audit trail', met: metrics.qualityScore > 80, score: Math.round(metrics.qualityScore) },
+                { req: 'FINMA: Client KYC completeness', met: currentParams.completeness < 15, score: 100 - currentParams.completeness },
+                { req: 'GDPR: Data governance automation', met: currentParams.governance > 70, score: Math.round(currentParams.governance) },
+                { req: 'AML/Sanctions: Real-time screening data', met: currentParams.digitalIntegration > 85, score: Math.round(currentParams.digitalIntegration) }
+            ];
+
+            complianceReqs.forEach(req => {
+                const div = document.createElement('div');
+                div.style.padding = '10px';
+                div.style.background = req.met ? '#EAF3DE' : '#FCEBEB';
+                div.style.border = '1px solid ' + (req.met ? '#3B6D11' : '#A32D2D');
+                div.style.borderRadius = '6px';
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.style.alignItems = 'center';
+                div.style.fontSize = '12px';
+                div.innerHTML = `
+                    <span>${req.met ? '✓' : '✗'} ${req.req}</span>
+                    <strong style="color: ${req.met ? '#3B6D11' : '#A32D2D'};">${req.score}%</strong>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderSensitivityAnalysis(params, metrics) {
+            const tbody = document.getElementById('sensitivityTableBody');
+            tbody.innerHTML = '';
+            
+            const baseNPV = metrics.totalValue;
+            
+            const sensitivities = [
+                {
+                    assumption: 'Analytics adoption rate',
+                    base: params.adoption,
+                    impact: (val) => {
+                        const adj = JSON.parse(JSON.stringify(params));
+                        adj.adoption = val;
+                        return calculateMetrics(adj).totalValue;
+                    }
+                },
+                {
+                    assumption: 'Data quality (completeness)',
+                    base: 100 - params.completeness,
+                    impact: (val) => {
+                        const adj = JSON.parse(JSON.stringify(params));
+                        adj.completeness = Math.max(5, 100 - val);
+                        return calculateMetrics(adj).totalValue;
+                    }
+                },
+                {
+                    assumption: 'Integration completeness',
+                    base: (params.legacyIntegration + params.digitalIntegration) / 2,
+                    impact: (val) => {
+                        const adj = JSON.parse(JSON.stringify(params));
+                        adj.legacyIntegration = val;
+                        adj.digitalIntegration = val;
+                        return calculateMetrics(adj).totalValue;
+                    }
+                },
+                {
+                    assumption: 'Revenue per client uplift',
+                    base: params.revenuePerClient,
+                    impact: (val) => {
+                        const adj = JSON.parse(JSON.stringify(params));
+                        adj.revenuePerClient = val;
+                        return calculateMetrics(adj).totalValue;
+                    }
+                },
+                {
+                    assumption: 'Cost savings (ops efficiency)',
+                    base: params.costSavings,
+                    impact: (val) => {
+                        const adj = JSON.parse(JSON.stringify(params));
+                        adj.costSavings = val;
+                        return calculateMetrics(adj).totalValue;
+                    }
+                }
+            ];
+
+            sensitivities.forEach(sens => {
+                const downside = sens.impact(Math.max(0, sens.base * 0.8));
+                const upside = sens.impact(sens.base * 1.2);
+                const volatility = Math.round(((upside - downside) / baseNPV) * 100);
+                
+                const tr = document.createElement('tr');
+                const downPercent = Math.round(((downside - baseNPV) / baseNPV) * 100);
+                const upPercent = Math.round(((upside - baseNPV) / baseNPV) * 100);
+                
+                tr.innerHTML = `
+                    <td><strong>${sens.assumption}</strong></td>
+                    <td style="color: #A32D2D; font-weight: 600;">€${Math.round(downside / 1000)}M (${downPercent > 0 ? '+' : ''}${downPercent}%)</td>
+                    <td style="color: #378ADD; font-weight: 600;">€${Math.round(baseNPV / 1000)}M</td>
+                    <td style="color: #3B6D11; font-weight: 600;">€${Math.round(upside / 1000)}M (${upPercent > 0 ? '+' : ''}${upPercent}%)</td>
+                    <td style="font-weight: 600;">${volatility}%</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderParameters() {
+            document.getElementById('legacyIntegration').value = currentParams.legacyIntegration;
+            document.getElementById('digitalIntegration').value = currentParams.digitalIntegration;
+            document.getElementById('complianceLink').value = currentParams.complianceLink;
+            document.getElementById('completeness').value = currentParams.completeness;
+            document.getElementById('duplicates').value = currentParams.duplicates;
+            document.getElementById('governance').value = currentParams.governance;
+            document.getElementById('adoption').value = currentParams.adoption;
+            document.getElementById('training').value = currentParams.training;
+            document.getElementById('velocity').value = currentParams.velocity;
+            document.getElementById('revenuePerClient').value = currentParams.revenuePerClient;
+            document.getElementById('retention').value = currentParams.retention;
+            document.getElementById('costSavings').value = currentParams.costSavings;
+            
+            updateValueDisplays();
+        }
+
+        function updateValueDisplays() {
+            document.getElementById('legacyVal').textContent = currentParams.legacyIntegration;
+            document.getElementById('digitalVal').textContent = currentParams.digitalIntegration;
+            document.getElementById('complianceVal').textContent = currentParams.complianceLink;
+            document.getElementById('completenessVal').textContent = currentParams.completeness;
+            document.getElementById('duplicatesVal').textContent = currentParams.duplicates;
+            document.getElementById('governanceVal').textContent = currentParams.governance;
+            document.getElementById('adoptionVal').textContent = currentParams.adoption;
+            document.getElementById('trainingVal').textContent = currentParams.training;
+            document.getElementById('velocityVal').textContent = currentParams.velocity;
+            document.getElementById('revenueVal').textContent = currentParams.revenuePerClient;
+            document.getElementById('retentionVal').textContent = currentParams.retention;
+            document.getElementById('costVal').textContent = currentParams.costSavings;
+        }
+
+        // Event listeners
+        document.querySelectorAll('input[type="range"]').forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                const id = e.target.id;
+                const value = parseFloat(e.target.value);
+                const paramName = {
+                    legacyIntegration, digitalIntegration, complianceLink, completeness, duplicates,
+                    governance, adoption, training, velocity, revenuePerClient, retention, costSavings
+                }[id] || id;
+                currentParams[id] = value;
+                updateValueDisplays();
+                updateMetrics(currentParams);
+            });
+        });
+
+        document.getElementById('scenarioCurrentBtn').addEventListener('click', () => {
+            activeScenario = 'current';
+            currentParams = JSON.parse(JSON.stringify(currentState));
+            renderParameters();
+            updateMetrics(currentParams);
+            updateButtonState();
+        });
+
+        document.getElementById('scenarioTargetBtn').addEventListener('click', () => {
+            activeScenario = 'target';
+            currentParams = JSON.parse(JSON.stringify(targetState));
+            renderParameters();
+            updateMetrics(currentParams);
+            updateButtonState();
+        });
+
+        document.getElementById('scenarioCustomBtn').addEventListener('click', () => {
+            activeScenario = 'custom';
+            updateButtonState();
+        });
+
+        document.getElementById('runSimBtn').addEventListener('click', () => {
+            updateMetrics(currentParams);
+        });
+
+        function updateButtonState() {
+            document.getElementById('scenarioCurrentBtn').classList.remove('active');
+            document.getElementById('scenarioTargetBtn').classList.remove('active');
+            document.getElementById('scenarioCustomBtn').classList.remove('active');
+            
+            if (activeScenario === 'current') {
+                document.getElementById('scenarioCurrentBtn').classList.add('active');
+            } else if (activeScenario === 'target') {
+                document.getElementById('scenarioTargetBtn').classList.add('active');
+            } else {
+                document.getElementById('scenarioCustomBtn').classList.add('active');
+            }
+        }
+
+        renderParameters();
+        updateMetrics(currentParams);
+    </script>
+</body>
+</html>

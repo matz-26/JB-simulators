@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julius Baer Cloud Migration & FinOps Simulator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #185FA5 0%, #0C447C 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            font-size: 13px;
+            opacity: 0.95;
+            margin-bottom: 0.5rem;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background: #f0f0f0;
+        }
+        
+        button.active {
+            background: #185FA5;
+            color: white;
+            border-color: #185FA5;
+        }
+        
+        button.run-btn {
+            background: #185FA5;
+            color: white;
+            border-color: #185FA5;
+            margin-left: auto;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+        
+        .metric-value {
+            font-size: 22px;
+            font-weight: 600;
+            color: #185FA5;
+        }
+        
+        .metric-value.positive {
+            color: #3B6D11;
+        }
+        
+        .metric-value.negative {
+            color: #A32D2D;
+        }
+        
+        .section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+        }
+        
+        .parameter-group {
+            margin-bottom: 1.5rem;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            border-left: 4px solid #185FA5;
+        }
+        
+        .parameter-group-title {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #185FA5;
+        }
+        
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        
+        .parameter-input {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .parameter-input label {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+        
+        .value-display {
+            font-size: 12px;
+            font-weight: 600;
+            color: #185FA5;
+            margin-top: 4px;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            position: relative;
+            min-height: 300px;
+        }
+        
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+        }
+        
+        .chart-inner {
+            position: relative;
+            height: 220px;
+        }
+        
+        .info-box {
+            background: #E6F1FB;
+            border-left: 4px solid #185FA5;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #0C447C;
+            margin-bottom: 1rem;
+        }
+        
+        .roi-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .roi-table th, .roi-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 12px;
+        }
+        
+        .roi-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .roi-table tr:hover {
+            background: #fafafa;
+        }
+        
+        .roi-positive {
+            color: #3B6D11;
+            font-weight: 600;
+        }
+        
+        .roi-negative {
+            color: #A32D2D;
+        }
+        
+        .phase-timeline {
+            display: flex;
+            gap: 12px;
+            margin-top: 1rem;
+            position: relative;
+        }
+        
+        .phase-block {
+            flex: 1;
+            padding: 12px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        
+        .phase-title {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #185FA5;
+        }
+        
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cloud Migration & FinOps Simulator</h1>
+            <p>Strategic cost optimization tool for Deputy Head of Data & Solutions</p>
+            <p style="font-size: 12px; margin-top: 0.5rem;">Models on-premise to cloud infrastructure migration, cost dynamics, compliance gates, and multi-year financial impact for Julius Baer's data platform transformation</p>
+        </div>
+
+        <div class="info-box">
+            <strong>Current State (Julius Baer):</strong> On-premise data warehouse (€2.5M annual CapEx + staffing) + fragmented cloud BI tools = high costs, limited scalability, compliance complexity. Cloud-native target: Snowflake/Databricks on AWS CH region with auto-scaling, DR, EU data residency.
+        </div>
+
+        <div class="controls">
+            <button id="scenarioOnPremBtn" class="active">On-prem baseline</button>
+            <button id="scenarioCloudBtn">Cloud-native target</button>
+            <button id="scenarioHybridBtn">Hybrid (phased)</button>
+            <button id="scenarioCustomBtn">Custom scenario</button>
+            <button id="runSimBtn" class="run-btn">Update metrics</button>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Year 1 cost</div>
+                <div class="metric-value" id="metricYear1Cost">€2.8M</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Year 3 cost</div>
+                <div class="metric-value" id="metricYear3Cost">€2.8M</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">3-Year total spend</div>
+                <div class="metric-value negative" id="metricTotal3Year">€8.4M</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">CapEx vs OpEx ratio</div>
+                <div class="metric-value" id="metricCapexRatio">100% CapEx</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Cloud maturity score</div>
+                <div class="metric-value" id="metricMaturity">0%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Compliance readiness</div>
+                <div class="metric-value" id="metricCompliance">30%</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Migration parameters & cost drivers</div>
+            
+            <div class="parameter-group">
+                <div class="parameter-group-title">☁️ CLOUD INFRASTRUCTURE STRATEGY</div>
+                <div class="parameter-grid">
+                    <div class="parameter-input">
+                        <label>Cloud data warehouse adoption (%)</label>
+                        <input type="range" min="0" max="100" step="5" value="0" id="cloudAdoption">
+                        <span class="value-display"><span id="cloudVal">0</span>% migrated</span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Cloud provider region strategy</label>
+                        <select id="regionStrategy" style="padding: 6px; border-radius: 4px; border: 1px solid #ddd;">
+                            <option value="single">Single region (AWS CH)</option>
+                            <option value="multi">Multi-region (CH + EU)</option>
+                            <option value="hybrid">Hybrid (on-prem + cloud)</option>
+                        </select>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Auto-scaling & optimization (%)</label>
+                        <input type="range" min="0" max="100" step="10" value="0" id="optimization">
+                        <span class="value-display"><span id="optimVal">0</span>% enabled</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="parameter-group">
+                <div class="parameter-group-title">💰 COST STRUCTURE & DYNAMICS</div>
+                <div class="parameter-grid">
+                    <div class="parameter-input">
+                        <label>Compute cost (€/month)</label>
+                        <input type="range" min="0" max="400000" step="10000" value="150000" id="computeCost">
+                        <span class="value-display">€<span id="computeVal">150000</span></span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Storage cost (€/month)</label>
+                        <input type="range" min="0" max="300000" step="10000" value="100000" id="storageCost">
+                        <span class="value-display">€<span id="storageVal">100000</span></span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Data transfer cost (€/month)</label>
+                        <input type="range" min="0" max="200000" step="5000" value="50000" id="transferCost">
+                        <span class="value-display">€<span id="transferVal">50000</span></span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Licensing & tools (€/month)</label>
+                        <input type="range" min="0" max="150000" step="5000" value="80000" id="licensingCost">
+                        <span class="value-display">€<span id="licensingVal">80000</span></span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Staffing & DevOps (€/month)</label>
+                        <input type="range" min="0" max="400000" step="20000" value="200000" id="staffingCost">
+                        <span class="value-display">€<span id="staffingVal">200000</span></span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Reserved capacity discount (%)</label>
+                        <input type="range" min="0" max="40" step="5" value="0" id="discount">
+                        <span class="value-display"><span id="discountVal">0</span>% discount</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="parameter-group">
+                <div class="parameter-group-title">🛡️ COMPLIANCE & RISK GATES</div>
+                <div class="parameter-grid">
+                    <div class="parameter-input">
+                        <label>FINMA approval & regulatory readiness (%)</label>
+                        <input type="range" min="0" max="100" step="10" value="0" id="finmaReady">
+                        <span class="value-display"><span id="finmaVal">0</span>% ready</span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Data sovereignty compliance (%)</label>
+                        <input type="range" min="0" max="100" step="10" value="0" id="sovereignty">
+                        <span class="value-display"><span id="sovereigntyVal">0</span>% compliant</span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Security certifications (SOC2, ISO27001 %)</label>
+                        <input type="range" min="0" max="100" step="10" value="0" id="security">
+                        <span class="value-display"><span id="securityVal">0</span>% certified</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="parameter-group">
+                <div class="parameter-group-title">📊 MIGRATION TIMELINE & ADOPTION</div>
+                <div class="parameter-grid">
+                    <div class="parameter-input">
+                        <label>Migration phase completion (%)</label>
+                        <input type="range" min="0" max="100" step="5" value="0" id="migrationPhase">
+                        <span class="value-display"><span id="phaseVal">0</span>% complete</span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>Data engineer ramp-up (%)</label>
+                        <input type="range" min="0" max="100" step="10" value="0" id="engineerRamp">
+                        <span class="value-display"><span id="engineerVal">0</span>% productive</span>
+                    </div>
+                    <div class="parameter-input">
+                        <label>On-prem system decommission (%)</label>
+                        <input type="range" min="0" max="100" step="5" value="0" id="decomission">
+                        <span class="value-display"><span id="decommissionVal">0</span>% retired</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-container">
+                <div class="chart-title">3-Year cost trajectory</div>
+                <div class="chart-inner">
+                    <canvas id="costChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Cost composition by category</div>
+                <div class="chart-inner">
+                    <canvas id="compositionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Migration roadmap & phases</div>
+            <div class="phase-timeline">
+                <div class="phase-block">
+                    <div class="phase-title">Phase 1: Assess & Plan (0–3 months)</div>
+                    <div style="font-size: 11px; color: #666;">
+                        • Architecture review<br>
+                        • Cost modeling<br>
+                        • Risk assessment<br>
+                        • FINMA alignment<br>
+                        <strong style="color: #333;">Cost: €150K</strong>
+                    </div>
+                </div>
+                <div class="phase-block">
+                    <div class="phase-title">Phase 2: Pilot & Build (3–9 months)</div>
+                    <div style="font-size: 11px; color: #666;">
+                        • Dev environment on cloud<br>
+                        • Proof of concept (POC)<br>
+                        • Security hardening<br>
+                        • Data migration tools<br>
+                        <strong style="color: #333;">Cost: €400K + monthly</strong>
+                    </div>
+                </div>
+                <div class="phase-block">
+                    <div class="phase-title">Phase 3: Production (9–15 months)</div>
+                    <div style="font-size: 11px; color: #666;">
+                        • Production deployment<br>
+                        • On-prem parallel run<br>
+                        • Cutover & validation<br>
+                        • Team training<br>
+                        <strong style="color: #333;">Cost: Full cloud ops</strong>
+                    </div>
+                </div>
+                <div class="phase-block">
+                    <div class="phase-title">Phase 4: Optimize (15+ months)</div>
+                    <div style="font-size: 11px; color: #666;">
+                        • Reserved capacity<br>
+                        • Auto-scaling rules<br>
+                        • Cost optimization<br>
+                        • On-prem decommission<br>
+                        <strong style="color: #333;">Savings: 25–35%</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Financial impact & ROI</div>
+            <table class="roi-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>On-Prem (Current)</th>
+                        <th>Cloud (Target)</th>
+                        <th>3-Year Impact</th>
+                    </tr>
+                </thead>
+                <tbody id="roiTableBody">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Compliance & risk checklist</div>
+            <div id="complianceChecklist" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Sensitivity analysis (what breaks the model?)</div>
+            <table class="roi-table">
+                <thead>
+                    <tr>
+                        <th>Risk Factor</th>
+                        <th>Impact if 20% Worse</th>
+                        <th>Mitigation</th>
+                    </tr>
+                </thead>
+                <tbody id="sensitivityTableBody">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const scenarios = {
+            onPrem: {
+                cloudAdoption: 0,
+                regionStrategy: 'single',
+                optimization: 0,
+                computeCost: 150000,
+                storageCost: 100000,
+                transferCost: 0,
+                licensingCost: 80000,
+                staffingCost: 200000,
+                discount: 0,
+                finmaReady: 30,
+                sovereignty: 40,
+                security: 50,
+                migrationPhase: 0,
+                engineerRamp: 50,
+                decomission: 0
+            },
+            cloud: {
+                cloudAdoption: 100,
+                regionStrategy: 'multi',
+                optimization: 75,
+                computeCost: 120000,
+                storageCost: 80000,
+                transferCost: 30000,
+                licensingCost: 70000,
+                staffingCost: 180000,
+                discount: 30,
+                finmaReady: 90,
+                sovereignty: 95,
+                security: 95,
+                migrationPhase: 100,
+                engineerRamp: 90,
+                decomission: 100
+            },
+            hybrid: {
+                cloudAdoption: 60,
+                regionStrategy: 'hybrid',
+                optimization: 40,
+                computeCost: 140000,
+                storageCost: 95000,
+                transferCost: 40000,
+                licensingCost: 75000,
+                staffingCost: 190000,
+                discount: 15,
+                finmaReady: 70,
+                sovereignty: 75,
+                security: 75,
+                migrationPhase: 60,
+                engineerRamp: 70,
+                decomission: 40
+            }
+        };
+
+        let activeScenario = 'onPrem';
+        let currentParams = JSON.parse(JSON.stringify(scenarios.onPrem));
+        let costChart = null;
+        let compositionChart = null;
+
+        function calculateCosts(params) {
+            const monthlyTotal = (params.computeCost + params.storageCost + params.transferCost + 
+                                 params.licensingCost + params.staffingCost) * (1 - params.discount / 100);
+            
+            const migrationCosts = {
+                phase1: 150000,
+                phase2: 400000 + (monthlyTotal * 6),
+                phase3: monthlyTotal * 6
+            };
+
+            const onPremCosts = {
+                phase0: 2800000 // Annual on-prem cost
+            };
+
+            const year1Cost = onPremCosts.phase0 * (1 - params.migrationPhase / 100 * 0.3) + 
+                             (params.migrationPhase / 100) * monthlyTotal * 12;
+            
+            const year2Cost = (1 - params.decomission / 100) * onPremCosts.phase0 * 0.5 + 
+                             monthlyTotal * 12;
+            
+            const year3Cost = monthlyTotal * 12;
+            
+            const total3Year = year1Cost + year2Cost + year3Cost;
+            
+            return {
+                year1Cost,
+                year2Cost,
+                year3Cost,
+                total3Year,
+                monthlyTotal,
+                migrationCosts
+            };
+        }
+
+        function calculateMetrics(params) {
+            const costs = calculateCosts(params);
+            const maturityScore = (params.cloudAdoption + params.finmaReady + params.engineerRamp) / 3;
+            const complianceScore = (params.finmaReady + params.sovereignty + params.security) / 3;
+            const capexRatio = ((2800000 * 12 - costs.monthlyTotal * 12) / (2800000 * 12 + costs.monthlyTotal * 12)) * 100;
+
+            return {
+                ...costs,
+                maturityScore,
+                complianceScore,
+                capexRatio: Math.max(0, capexRatio)
+            };
+        }
+
+        function updateMetrics(params) {
+            const metrics = calculateMetrics(params);
+
+            document.getElementById('metricYear1Cost').textContent = '€' + Math.round(metrics.year1Cost / 1000) + 'K';
+            document.getElementById('metricYear3Cost').textContent = '€' + Math.round(metrics.year3Cost / 1000) + 'K';
+            document.getElementById('metricTotal3Year').textContent = '€' + Math.round(metrics.total3Year / 1000) + 'K';
+            document.getElementById('metricCapexRatio').textContent = Math.round(100 - metrics.capexRatio) + '% OpEx';
+            document.getElementById('metricMaturity').textContent = Math.round(metrics.maturityScore) + '%';
+            document.getElementById('metricCompliance').textContent = Math.round(metrics.complianceScore) + '%';
+
+            renderCharts(params, metrics);
+            renderROITable(params, metrics);
+            renderCompliance(params);
+            renderSensitivity(params, metrics);
+        }
+
+        function renderCharts(params, metrics) {
+            const years = ['Year 1', 'Year 2', 'Year 3'];
+            const costs = [
+                Math.round(metrics.year1Cost / 1000),
+                Math.round(metrics.year2Cost / 1000),
+                Math.round(metrics.year3Cost / 1000)
+            ];
+
+            if (costChart) costChart.destroy();
+            costChart = new Chart(document.getElementById('costChart'), {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [{
+                        label: 'Total annual cost (€K)',
+                        data: costs,
+                        borderColor: params.cloudAdoption > 50 ? '#3B6D11' : '#A32D2D',
+                        backgroundColor: params.cloudAdoption > 50 ? 'rgba(59, 109, 17, 0.1)' : 'rgba(163, 45, 45, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            const composition = [
+                params.computeCost,
+                params.storageCost,
+                params.transferCost,
+                params.licensingCost,
+                params.staffingCost
+            ];
+
+            if (compositionChart) compositionChart.destroy();
+            compositionChart = new Chart(document.getElementById('compositionChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Compute', 'Storage', 'Data Transfer', 'Licensing', 'Staffing'],
+                    datasets: [{
+                        data: composition,
+                        backgroundColor: ['#378ADD', '#639922', '#BA7517', '#185FA5', '#E24B4A']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true, position: 'bottom' } }
+                }
+            });
+        }
+
+        function renderROITable(params, metrics) {
+            const tbody = document.getElementById('roiTableBody');
+            tbody.innerHTML = '';
+
+            const rows = [
+                {
+                    metric: 'Annual cost',
+                    onPrem: '€2.8M (CapEx + fixed)',
+                    cloud: '€' + Math.round(metrics.monthlyTotal * 12 / 1000) + 'K (OpEx + variable)',
+                    impact: params.cloudAdoption > 50 ? '✓ Cost grows with scale' : '✗ Fixed high cost'
+                },
+                {
+                    metric: 'Scalability',
+                    onPrem: 'Limited (need to buy hardware)',
+                    cloud: 'Unlimited (auto-scale)',
+                    impact: '✓ Faster time-to-market'
+                },
+                {
+                    metric: 'Migration cost',
+                    onPrem: '€0 (already there)',
+                    cloud: '€550K (Phases 1-2)',
+                    impact: 'Payback: ' + Math.round(550000 / ((2800000 - metrics.monthlyTotal * 12) / 12)) + ' months'
+                },
+                {
+                    metric: 'Staffing needs',
+                    onPrem: '10 on-prem engineers',
+                    cloud: '8 cloud engineers (cheaper)',
+                    impact: '✓ €200K/yr savings'
+                },
+                {
+                    metric: '3-Year total spend',
+                    onPrem: '€8.4M',
+                    cloud: '€' + Math.round(metrics.total3Year / 1000) + 'K',
+                    impact: metrics.total3Year < 8400000 ? '✓ Save €' + Math.round((8400000 - metrics.total3Year) / 1000) + 'K' : '✗ Higher (migration debt)'
+                }
+            ];
+
+            rows.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${row.metric}</strong></td>
+                    <td>${row.onPrem}</td>
+                    <td>${row.cloud}</td>
+                    <td style="color: ${row.impact.startsWith('✓') ? '#3B6D11' : row.impact.startsWith('✗') ? '#A32D2D' : '#666'};">${row.impact}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderCompliance(params) {
+            const container = document.getElementById('complianceChecklist');
+            container.innerHTML = '';
+
+            const checks = [
+                { name: 'FINMA approval & oversight', score: params.finmaReady, critical: true },
+                { name: 'Data residency (CH/EU only)', score: params.sovereignty, critical: true },
+                { name: 'Security certifications (SOC2, ISO27001)', score: params.security, critical: true },
+                { name: 'Encryption (at-rest & in-transit)', score: Math.min(100, params.security + 20), critical: true },
+                { name: 'Disaster recovery (multi-region)', score: params.cloudAdoption > 50 ? 80 : 30, critical: false }
+            ];
+
+            checks.forEach(check => {
+                const met = check.score > 70;
+                const div = document.createElement('div');
+                div.style.padding = '10px';
+                div.style.background = met ? '#EAF3DE' : '#FCEBEB';
+                div.style.border = '1px solid ' + (met ? '#3B6D11' : '#A32D2D');
+                div.style.borderRadius = '6px';
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.style.alignItems = 'center';
+                div.style.fontSize = '12px';
+                div.innerHTML = `
+                    <span>${met ? '✓' : '⚠'} ${check.name} ${check.critical ? '(CRITICAL)' : ''}</span>
+                    <strong style="color: ${met ? '#3B6D11' : '#A32D2D'};">${check.score}%</strong>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderSensitivity(params, metrics) {
+            const tbody = document.getElementById('sensitivityTableBody');
+            tbody.innerHTML = '';
+
+            const risks = [
+                {
+                    factor: 'Migration delay (+6 months)',
+                    impact: '€' + Math.round((2800000 / 12 * 6) / 1000) + 'K (extended on-prem)',
+                    mitigation: 'Strict project governance, phased approach'
+                },
+                {
+                    factor: 'Cloud cost overruns (+20%)',
+                    impact: '€' + Math.round((metrics.monthlyTotal * 12 * 0.2 * 3) / 1000) + 'K over 3 years',
+                    mitigation: 'Reserved capacity (30% discount), cost monitoring'
+                },
+                {
+                    factor: 'Data transfer costs spike',
+                    impact: '€' + Math.round((params.transferCost * 3) / 1000) + 'K if not optimized',
+                    mitigation: 'VPN/FastConnect (private connectivity)'
+                },
+                {
+                    factor: 'Compliance approval delays',
+                    impact: '€' + Math.round((2800000 / 12 * 3) / 1000) + 'K (stays on-prem 3 extra months)',
+                    mitigation: 'Engage FINMA early, proof of control'
+                },
+                {
+                    factor: 'Team skill gaps',
+                    impact: '€' + Math.round((params.staffingCost * 0.3) / 1000) + 'K (hiring/training)',
+                    mitigation: 'Training programs, hire cloud-native talent early'
+                }
+            ];
+
+            risks.forEach(risk => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${risk.factor}</strong></td>
+                    <td style="color: #A32D2D; font-weight: 600;">${risk.impact}</td>
+                    <td>${risk.mitigation}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderParameters() {
+            document.getElementById('cloudAdoption').value = currentParams.cloudAdoption;
+            document.getElementById('regionStrategy').value = currentParams.regionStrategy;
+            document.getElementById('optimization').value = currentParams.optimization;
+            document.getElementById('computeCost').value = currentParams.computeCost;
+            document.getElementById('storageCost').value = currentParams.storageCost;
+            document.getElementById('transferCost').value = currentParams.transferCost;
+            document.getElementById('licensingCost').value = currentParams.licensingCost;
+            document.getElementById('staffingCost').value = currentParams.staffingCost;
+            document.getElementById('discount').value = currentParams.discount;
+            document.getElementById('finmaReady').value = currentParams.finmaReady;
+            document.getElementById('sovereignty').value = currentParams.sovereignty;
+            document.getElementById('security').value = currentParams.security;
+            document.getElementById('migrationPhase').value = currentParams.migrationPhase;
+            document.getElementById('engineerRamp').value = currentParams.engineerRamp;
+            document.getElementById('decomission').value = currentParams.decomission;
+            updateValueDisplays();
+        }
+
+        function updateValueDisplays() {
+            document.getElementById('cloudVal').textContent = currentParams.cloudAdoption;
+            document.getElementById('optimVal').textContent = currentParams.optimization;
+            document.getElementById('computeVal').textContent = currentParams.computeCost.toLocaleString();
+            document.getElementById('storageVal').textContent = currentParams.storageCost.toLocaleString();
+            document.getElementById('transferVal').textContent = currentParams.transferCost.toLocaleString();
+            document.getElementById('licensingVal').textContent = currentParams.licensingCost.toLocaleString();
+            document.getElementById('staffingVal').textContent = currentParams.staffingCost.toLocaleString();
+            document.getElementById('discountVal').textContent = currentParams.discount;
+            document.getElementById('finmaVal').textContent = currentParams.finmaReady;
+            document.getElementById('sovereigntyVal').textContent = currentParams.sovereignty;
+            document.getElementById('securityVal').textContent = currentParams.security;
+            document.getElementById('phaseVal').textContent = currentParams.migrationPhase;
+            document.getElementById('engineerVal').textContent = currentParams.engineerRamp;
+            document.getElementById('decommissionVal').textContent = currentParams.decomission;
+        }
+
+        // Event listeners
+        document.querySelectorAll('input[type="range"]').forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                const id = e.target.id;
+                currentParams[id] = parseFloat(e.target.value);
+                updateValueDisplays();
+                updateMetrics(currentParams);
+            });
+        });
+
+        document.getElementById('regionStrategy').addEventListener('change', (e) => {
+            currentParams.regionStrategy = e.target.value;
+            updateMetrics(currentParams);
+        });
+
+        document.getElementById('scenarioOnPremBtn').addEventListener('click', () => {
+            activeScenario = 'onPrem';
+            currentParams = JSON.parse(JSON.stringify(scenarios.onPrem));
+            renderParameters();
+            updateMetrics(currentParams);
+            updateButtonState();
+        });
+
+        document.getElementById('scenarioCloudBtn').addEventListener('click', () => {
+            activeScenario = 'cloud';
+            currentParams = JSON.parse(JSON.stringify(scenarios.cloud));
+            renderParameters();
+            updateMetrics(currentParams);
+            updateButtonState();
+        });
+
+        document.getElementById('scenarioHybridBtn').addEventListener('click', () => {
+            activeScenario = 'hybrid';
+            currentParams = JSON.parse(JSON.stringify(scenarios.hybrid));
+            renderParameters();
+            updateMetrics(currentParams);
+            updateButtonState();
+        });
+
+        document.getElementById('scenarioCustomBtn').addEventListener('click', () => {
+            activeScenario = 'custom';
+            updateButtonState();
+        });
+
+        document.getElementById('runSimBtn').addEventListener('click', () => {
+            updateMetrics(currentParams);
+        });
+
+        function updateButtonState() {
+            document.getElementById('scenarioOnPremBtn').classList.remove('active');
+            document.getElementById('scenarioCloudBtn').classList.remove('active');
+            document.getElementById('scenarioHybridBtn').classList.remove('active');
+            document.getElementById('scenarioCustomBtn').classList.remove('active');
+            
+            if (activeScenario === 'onPrem') {
+                document.getElementById('scenarioOnPremBtn').classList.add('active');
+            } else if (activeScenario === 'cloud') {
+                document.getElementById('scenarioCloudBtn').classList.add('active');
+            } else if (activeScenario === 'hybrid') {
+                document.getElementById('scenarioHybridBtn').classList.add('active');
+            } else {
+                document.getElementById('scenarioCustomBtn').classList.add('active');
+            }
+        }
+
+        renderParameters();
+        updateMetrics(currentParams);
+    </script>
+</body>
+</html>
