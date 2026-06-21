@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julius Baer Digital Twin Simulators - Strategic Planning Tools</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8f4f8 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #185FA5 0%, #0C447C 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(24, 95, 165, 0.15);
+        }
+        
+        header h1 {
+            font-size: 36px;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            font-size: 16px;
+            opacity: 0.95;
+            margin-bottom: 0.5rem;
+        }
+        
+        .disclaimer-box {
+            background: #FFF3CD;
+            border-left: 5px solid #FFC107;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 2rem;
+            font-size: 13px;
+            color: #664D03;
+        }
+        
+        .disclaimer-box strong {
+            color: #332701;
+        }
+        
+        .simulators-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+            margin-bottom: 2rem;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .simulator-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .simulator-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+            border-color: #185FA5;
+        }
+        
+        .simulator-card h2 {
+            font-size: 20px;
+            color: #185FA5;
+            margin-bottom: 0.5rem;
+        }
+        
+        .simulator-card .emoji {
+            font-size: 32px;
+            margin-bottom: 1rem;
+        }
+        
+        .simulator-card p {
+            color: #666;
+            margin-bottom: 1rem;
+            flex-grow: 1;
+        }
+        
+        .simulator-card ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .simulator-card li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .simulator-card .role-badge {
+            background: #E6F1FB;
+            color: #185FA5;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        
+        .launch-btn {
+            background: #185FA5;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        
+        .launch-btn:hover {
+            background: #0C447C;
+            transform: scale(1.05);
+        }
+        
+        .info-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .info-section h2 {
+            color: #185FA5;
+            margin-bottom: 1rem;
+            font-size: 22px;
+        }
+        
+        .info-section h3 {
+            color: #333;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 16px;
+        }
+        
+        .info-section p {
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-section ul {
+            margin-left: 1.5rem;
+            color: #666;
+        }
+        
+        .info-section li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .feature-item {
+            padding: 1.5rem;
+            background: #F8FBFF;
+            border-radius: 8px;
+            border-left: 4px solid #378ADD;
+        }
+        
+        .feature-item strong {
+            color: #185FA5;
+        }
+        
+        footer {
+            background: #1a1a1a;
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-top: 3rem;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .contact-info {
+            margin-top: 1rem;
+            opacity: 0.9;
+        }
+        
+        .contact-info a {
+            color: #378ADD;
+            text-decoration: none;
+        }
+        
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+        
+        .role-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 1rem;
+        }
+        
+        .role-item {
+            background: #E6F1FB;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #185FA5;
+            font-size: 13px;
+        }
+        
+        .role-item strong {
+            color: #185FA5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚙️ Julius Baer Digital Twin Simulators</h1>
+            <p>Strategic planning tools for Deputy Head of Data & Solutions transformation</p>
+            <p style="font-size: 12px; margin-top: 1rem; opacity: 0.9;">Portfolio application materials | Created by: Santosh John Mathew</p>
+        </header>
+
+        <div class="disclaimer-box">
+            <strong>⚠️ IMPORTANT DISCLAIMER:</strong> These simulators are <strong>sample scenarios and demonstration models</strong> created for the Deputy Head of Data & Solutions role application at Julius Baer. The data used (costs, metrics, timelines) are <strong>estimated and sampled</strong> based on industry benchmarks and may <strong>not be 100% accurate</strong> to Julius Baer's actual operations. These tools are intended to demonstrate strategic thinking, problem-solving capabilities, and financial modeling expertise—<strong>not</strong> as actual production recommendations. All assumptions are clearly adjustable for scenario planning purposes.
+        </div>
+
+        <div class="simulators-grid">
+            <!-- Simulator 1: Data Integration -->
+            <div class="simulator-card">
+                <div class="emoji">📊</div>
+                <h2>Client 360 Data Integration</h2>
+                <div class="role-badge">Primary Tool</div>
+                <p><strong>Addresses the core challenge:</strong> Fragmented client data across legacy wealth management and digital banking systems creating €120M in lost value over 3 years.</p>
+                <h3 style="font-size: 14px; color: #666; font-weight: 600;">What it models:</h3>
+                <ul>
+                    <li>Data source integration (legacy WM, digital banking, compliance)</li>
+                    <li>Data quality improvements (completeness, duplicates, governance)</li>
+                    <li>Analytics platform adoption (RM training, change management)</li>
+                    <li>Business impact (time-to-insight, revenue uplift, compliance)</li>
+                    <li>3-year NPV & sensitivity analysis</li>
+                </ul>
+                <p style="font-size: 12px; color: #999; margin-top: 1rem; font-style: italic;"><strong>Sample Data Note:</strong> Cost figures and adoption rates are estimated based on typical Swiss private banking benchmarks and may not reflect Julius Baer's actual baseline.</p>
+                <a href="simulator_data_integration.html" class="launch-btn">Launch Simulator →</a>
+            </div>
+
+            <!-- Simulator 2: Cloud Migration -->
+            <div class="simulator-card">
+                <div class="emoji">☁️</div>
+                <h2>Cloud Migration & FinOps</h2>
+                <div class="role-badge">Secondary Tool</div>
+                <p><strong>Demonstrates infrastructure strategy:</strong> Migration from €2.8M annual on-premise data warehouse to cloud-native architecture with cost optimization and compliance gates.</p>
+                <h3 style="font-size: 14px; color: #666; font-weight: 600;">What it models:</h3>
+                <ul>
+                    <li>Cloud adoption phases (assess, pilot, production, optimize)</li>
+                    <li>Cost dynamics (compute, storage, transfer, licensing, staffing)</li>
+                    <li>FINMA compliance & data residency requirements</li>
+                    <li>Multi-region architecture (CH + EU compliance)</li>
+                    <li>3-year financial impact & risk sensitivity</li>
+                </ul>
+                <p style="font-size: 12px; color: #999; margin-top: 1rem; font-style: italic;"><strong>Sample Data Note:</strong> Cloud costs and migration timelines are industry averages; actual Julius Baer costs will depend on current infrastructure state.</p>
+                <a href="simulator_cloud_finops.html" class="launch-btn">Launch Simulator →</a>
+            </div>
+
+
+
+        <div class="info-section">
+            <h2>Why These Simulators Matter for Deputy Head of Data Role</h2>
+            <p>As Deputy Head of Data & Solutions, you own three critical responsibilities: (1) enabling the business with data-driven insights, (2) optimizing infrastructure costs, and (3) ensuring regulatory compliance. These three simulators demonstrate how to approach each challenge strategically.</p>
+            
+            <h3>Business Case Development</h3>
+            <p>These tools show the CFO/Board that you don't just "do technology"—you <strong>quantify business impact</strong>. Each simulator models costs, risks, and multi-year financial impact with sensitivity analysis, showing what assumptions drive ROI.</p>
+            
+            <h3>Cross-Functional Leadership</h3>
+            <p>Data integration isn't just a data problem—it's an operations + compliance + technology problem. Cloud migration isn't just infrastructure—it's a financial + risk + organizational change problem. These simulators show you think holistically across silos.</p>
+            
+            <h3>Risk Management</h3>
+            <p>Each simulator includes compliance checkpoints (FINMA, GDPR, data residency), risk gates, and sensitivity analysis. Shows you're not just chasing technical elegance but protecting the organization.</p>
+            
+            <div class="role-grid">
+                <div class="role-item">
+                    <strong>For CFO/Board:</strong> Financial impact, ROI, cost optimization
+                </div>
+                <div class="role-item">
+                    <strong>For CRO:</strong> Compliance roadmap, risk gates, regulatory readiness
+                </div>
+                <div class="role-item">
+                    <strong>For COO:</strong> Process improvements, timeline management, team ramp-up
+                </div>
+                <div class="role-item">
+                    <strong>For CTO:</strong> Technical architecture, cloud strategy, tool selection
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>How to Use These Simulators in Your Interview</h2>
+            
+            <h3>Opening Statement (2 minutes)</h3>
+            <p>"To demonstrate my approach to strategic data challenges, I've built three interactive simulators that model Julius Baer's key transformation initiatives. Each shows how to quantify business impact, navigate compliance gates, and build financial cases for the CFO."</p>
+            
+            <h3>Live Demo (10 minutes)</h3>
+            <p><strong>Step 1:</strong> Launch Data Integration simulator → show current state fragmentation (14-day time-to-insight, 62% data quality).</p>
+            <p><strong>Step 2:</strong> Toggle to target state → show impact (1-day insight, 95% quality, €200M value creation).</p>
+            <p><strong>Step 3:</strong> Adjust parameters live → "What if adoption only reaches 40% due to poor change management?" → show €170M NPV (down from €200M).</p>
+            <p><strong>Step 4:</strong> Sensitivity analysis → "Here are the risks I'd monitor monthly as Deputy Head."</p>
+            
+            <h3>Closing (2 minutes)</h3>
+            <p>"As Deputy Head of Data, I'd use this type of strategic modeling to build credibility with the CFO/Board, de-risk execution, and drive quarterly progress reviews. These simulators show how I turn technical problems into business solutions."</p>
+        </div>
+
+        <div class="info-section">
+            <h2>Key Features Across All Simulators</h2>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <strong>🎚️ Interactive Parameters</strong><br>
+                    Adjust sliders to explore different scenarios in real-time. See immediate impact on metrics.
+                </div>
+                <div class="feature-item">
+                    <strong>📊 Real-Time Charts</strong><br>
+                    Line charts, bar charts, doughnut charts showing cycle times, costs, adoption rates, and ROI.
+                </div>
+                <div class="feature-item">
+                    <strong>💰 Financial Modeling</strong><br>
+                    3-year NPV calculations, CapEx vs OpEx analysis, cost-benefit comparisons with sensitivity.
+                </div>
+                <div class="feature-item">
+                    <strong>🛡️ Compliance Tracking</strong><br>
+                    FINMA readiness, data residency compliance, security certifications, regulatory gates.
+                </div>
+                <div class="feature-item">
+                    <strong>⚠️ Risk Analysis</strong><br>
+                    Sensitivity tables showing which assumptions have highest impact (what breaks the model?).
+                </div>
+                <div class="feature-item">
+                    <strong>📈 Scenario Planning</strong><br>
+                    Compare on-prem vs cloud vs hybrid. Current state vs target state vs custom scenarios.
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>Technical Details & Data Sourcing</h2>
+            
+            <h3>Why These Simulators Are Realistic (But Not Exact)</h3>
+            <p>These models are built on:</p>
+            <ul>
+                <li><strong>Industry benchmarks:</strong> Swiss private banking typical costs, timelines, and adoption rates</li>
+                <li><strong>Public sources:</strong> AWS pricing models, cloud migration best practices from AWS/Azure whitepapers</li>
+                <li><strong>Process standards:</strong> Typical bank customer onboarding flows (based on FINMA guidance, industry practice)</li>
+                <li><strong>Regulatory knowledge:</strong> DORA, GDPR, FINMA requirements are accurately modeled</li>
+            </ul>
+            
+            <h3>What They DON'T Include (And Why)</h3>
+            <p>These simulators are intentionally simplified for clarity and strategic insight. They don't include:</p>
+            <ul>
+                <li>Julius Baer's proprietary cost data (which I don't have access to)</li>
+                <li>Specific legacy system details (e.g., mainframe contract terms)</li>
+                <li>Current team structure or capacity constraints</li>
+                <li>Detailed technical architecture decisions (e.g., exact cloud provider choice)</li>
+            </ul>
+            <p><strong>In a real Deputy Head role, these would be customized with actual data during Month 1 planning.</strong></p>
+            
+            <h3>How to Interpret the Numbers</h3>
+            <p>Use these simulators as:</p>
+            <ul>
+                <li>✅ <strong>Framework for thinking</strong> about the problem</li>
+                <li>✅ <strong>Structure for questions</strong> to ask stakeholders ("What are our actual data quality metrics?")</li>
+                <li>✅ <strong>Proof of concept</strong> that you can build models and analyze scenarios</li>
+                <li>❌ <strong>NOT</strong> as Julius Baer's actual baseline or approved roadmap</li>
+            </ul>
+        </div>
+
+        <div class="info-section">
+            <h2>Files & Repository Structure</h2>
+            <p>This GitHub Pages site is open-source. All simulator code is available for inspection and customization.</p>
+            <p><strong>Repository:</strong> <a href="https://github.com/yourusername/julius-baer-simulators" style="color: #378ADD; text-decoration: none;">github.com/yourusername/julius-baer-simulators</a></p>
+            <p><strong>Files included:</strong></p>
+            <ul>
+                <li><code>index.html</code> — This landing page</li>
+                <li><code>simulator_data_integration.html</code> — Client 360 Data Integration</li>
+                <li><code>simulator_cloud_finops.html</code> — Cloud Migration & FinOps</li>
+                <li><code>simulator_process_inception.html</code> — Customer Inception Process</li>
+                <li><code>Julius_Baer_Data_Integration_Summary.docx</code> — 1-page PDF summary</li>
+                <li><code>README.md</code> — Full documentation</li>
+            </ul>
+        </div>
+
+        <footer>
+            <h3>About the Author</h3>
+            <p>These simulators were created as part of a strategic job application for the <strong>Deputy Head of Data & Solutions Enablement</strong> role at Julius Baer.</p>
+            <p style="margin-top: 1rem; font-size: 12px;">They demonstrate approach to: strategic data infrastructure planning, cloud economics, financial modeling, compliance risk management, and cross-functional business leadership.</p>
+            <div class="contact-info">
+                <p><strong>Santosh John Mathew</strong></p>
+                <p>25+ years in digital transformation, data strategy, and financial services</p>
+                <p>📧 <a href="mailto:matzjohnsan@gmail.com">matzjohnsan@gmail.com</a> | 📱 <a href="tel:+41765077958">+41 765 077 958</a></p>
+                <p style="margin-top: 1rem; font-size: 11px;">Based in Zurich, Switzerland | Swiss C Permit</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
